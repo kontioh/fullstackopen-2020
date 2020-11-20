@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import ListPersons from './components/ListPersons'
 import PersonForm from './components/PersonForm'
+import Notification from './components/Notification'
 import personService from './services/PersonService'
 
 
@@ -11,6 +12,8 @@ const App = () => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ filter, setFilter ] = useState('')
+  const [ message, setMessage ] = useState(null)
+  const [ messageType, setMessageType ] = useState('success')
 
   useEffect(() => {
     personService
@@ -33,6 +36,9 @@ const App = () => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+          setMessage(`Added ${returnedPerson.name}`)
+          setMessageType('success')
+          setTimeout(() => { setMessage(null)}, 5000)
         })
     }
   }
@@ -48,6 +54,9 @@ const App = () => {
         .del(person.id)
           .then(() => {
           setPersons(persons.filter(p => p.id !== person.id))
+          setMessage(`Deleted ${person.name}`)
+          setMessageType('success')
+          setTimeout(() => { setMessage(null)}, 5000)
           })
     }
   }
@@ -61,6 +70,17 @@ const App = () => {
             setPersons(persons.map(p => p.id !== id ? p : returnedPerson))
             setNewName('')
             setNewNumber('')
+            setMessage(`Updated the number of ${returnedPerson.name}`)
+            setMessageType('success')
+            setTimeout(() => { setMessage(null)}, 5000)
+          })
+          .catch(error => {
+            console.log(error)
+            console.log(`The person ${person.name} was already deleted from server.`)
+            setMessage(`Information of ${person.name} has already been removed from server`)
+            setMessageType('error')
+            setTimeout(() => { setMessage(null)}, 5000)
+            setPersons(persons.filter(p => p.id !== id))
           })
     } 
   }
@@ -68,8 +88,14 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Filter filter={filter} handleFilter={onFilterUpdate}/>
-
+      <Notification 
+        message={message} 
+        messageType={messageType}
+        />
+      <Filter 
+        filter={filter} 
+        handleFilter={onFilterUpdate}
+        />
       <h2>add a new</h2>
       <PersonForm 
         newName={newName} 
@@ -78,12 +104,12 @@ const App = () => {
         handleNameChange={handleNameChange}
         handleNumberChange={handleNumberChange}
         />
-
       <h2>Numbers</h2>
       <ListPersons 
         persons={persons} 
         filter={filter} 
-        handleDelete={handleDelete}/>
+        handleDelete={handleDelete}
+        />
     </div>
   )
 }
