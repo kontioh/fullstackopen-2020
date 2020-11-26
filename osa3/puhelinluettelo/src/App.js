@@ -32,12 +32,17 @@ const App = () => {
     } else {
       personService
         .create(personObject)
-          .then(returnedPerson => {
-          setPersons(persons.concat(returnedPerson))
+          .then(createdPerson => {
+          setPersons(persons.concat(createdPerson))
           setNewName('')
           setNewNumber('')
-          setMessage(`Added ${returnedPerson.name}`)
+          setMessage(`Added ${createdPerson.name}`)
           setMessageType('success')
+          setTimeout(() => { setMessage(null)}, 5000)
+        })
+        .catch((error) => {
+          setMessage(error.response.data.error)
+          setMessageType('error')
           setTimeout(() => { setMessage(null)}, 5000)
         })
     }
