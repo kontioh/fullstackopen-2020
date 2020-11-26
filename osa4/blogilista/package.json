@@ -1,0 +1,27 @@
+{
+  "name": "blogilista",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kontioh/fullstackopen-2020/tree/master/osa4"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.10.16"
+  },
+  "devDependencies": {
+    "eslint": "^7.14.0",
+    "nodemon": "^2.0.6"
+  }
+}
