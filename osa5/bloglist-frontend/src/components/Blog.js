@@ -10,41 +10,27 @@ const Blog = ({ blog, onLike, onDelete, loggedUser }) => {
     marginBottom: 5
   }
 
-  const [visible, setVisible] = useState(false)
+  const [extended, setExtended] = useState(false) // determine what information to show
 
-  const hideWhenVisible = { display: visible ? 'none' : '' }
-  const showWhenVisible = { display: visible ? '' : 'none' }
-
-  const toggleVisibility = () => {
-    setVisible(!visible)
-  }
-
-  const showRemoveButton = () => {
-    if (blog.user !== undefined && blog.user.username === loggedUser.username) {
-      return (
-        <button onClick={() => onDelete(blog)}>remove</button>
-      )
-    }
-  }
+  const showExtended = () => (
+    <div>
+      <div>{blog.url}</div>
+      <div>Likes: {blog.likes} <button onClick={() => onLike(blog)}>like</button></div>
+      <div>{blog.user?.name}</div>
+      {loggedUser !== undefined && blog.user?.username === loggedUser.username
+        ? <button onClick={() => onDelete(blog)}>remove</button>
+        : null }
+    </div>
+  )
 
   return (
-    <div style={blogStyle}>
-
-      <div style={hideWhenVisible}>
-        {blog.title} {blog.author} <button onClick={toggleVisibility}>view</button>
-      </div>
-
-      <div style={showWhenVisible}>
-        {blog.title} {blog.author} <button onClick={toggleVisibility}>hide</button>
-        <div>{blog.url}</div>
-        <div>
-          likes {blog.likes} <button onClick={() => onLike(blog)}>like</button>
-        </div>
-        <div>{blog.user?.name}</div>
-        {showRemoveButton()}
-      </div>
-
+    <div style={blogStyle} className='blog'>
+      {blog.title} {blog.author} <button onClick={() => setExtended(!extended)}>{extended ? 'hide' : 'view'}</button>
+      {extended
+        ? showExtended()
+        : null }
     </div>
+
   )
 }
 
