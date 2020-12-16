@@ -25,7 +25,7 @@ const Blog = ({ blog, onLike, onDelete, loggedUser }) => {
 
   return (
     <div style={blogStyle} className='blog'>
-      {blog.title} {blog.author} <button onClick={() => setExtended(!extended)}>{extended ? 'hide' : 'view'}</button>
+      {blog.title} {blog.author} <button className='view-blog-button' onClick={() => setExtended(!extended)}>{extended ? 'hide' : 'view'}</button>
       {extended
         ? showExtended()
         : null }
