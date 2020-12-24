@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
+import { Link } from 'react-router-dom'
+import Comments from './Comments'
+import CommentForm from './CommentForm'
 
-const Blog = ({ blog, handleLike, handleRemove, own }) => {
-  const [visible, setVisible] = useState(false)
-
+const Blog = ({ blog, handleLike, handleRemove, own, details }) => {
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -12,23 +13,31 @@ const Blog = ({ blog, handleLike, handleRemove, own }) => {
     marginBottom: 5
   }
 
-  const label = visible ? 'hide' : 'view'
+  if (!details) {
+    return (
+      <div style={blogStyle} className='blog'>
+        <div>
+          <Link to={`/blogs/${blog.id}`}>{blog.title} {blog.author}</Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div style={blogStyle} className='blog'>
+    <div>
+      <h2>{blog.title}</h2>
+      <a href={`http://${blog.url}`}>{blog.url}</a>
       <div>
-        <i>{blog.title}</i> by {blog.author} <button onClick={() => setVisible(!visible)}>{label}</button>
+        {blog.likes} likes <button onClick={() => handleLike(blog.id)}>like</button>
       </div>
-      {visible&&(
-        <div>
-          <div>{blog.url}</div>
-          <div>likes {blog.likes}
-            <button onClick={() => handleLike(blog.id)}>like</button>
-          </div>
-          <div>{blog.user.name}</div>
-          {own&&<button onClick={() => handleRemove(blog.id)}>remove</button>}
-        </div>
-      )}
+      <div>
+        added by {blog.user?.name}
+      </div>
+      <div>
+      {own&&<button onClick={() => handleRemove(blog.id)}>remove</button>}
+      </div>
+      <Comments blogId={blog.id} />
+      <CommentForm blogId={blog.id} />
     </div>
   )
 }
@@ -38,10 +47,7 @@ Blog.propTypes = {
     title: PropTypes.string.isRequired,
     author: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
-  }).isRequired,
-  handleLike: PropTypes.func.isRequired,
-  handleRemove: PropTypes.func.isRequired,
-  own: PropTypes.bool.isRequired
+  }).isRequired
 }
 
 export default Blog

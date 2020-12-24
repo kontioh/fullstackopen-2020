@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react'
+import {
+  Switch,
+  Route,
+  useRouteMatch
+} from 'react-router-dom'
+
 import Blog from './components/Blog'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
+import Users from './components/Users'
+import User from './components/User'
+import Menu from './components/Menu'
 
 import blogService from './services/blogs'
 import loginService from './services/login'
+import userService from './services/users'
 import storage from './utils/storage'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { newNotification } from './reducers/notificationReducer'
 import { initBlogs, newBlog, likeBlog, removeBlog } from './reducers/blogReducer'
 import { setCurrentUser } from './reducers/loginReducer'
+import { initUsers } from './reducers/userReducer'
+
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -21,13 +33,17 @@ const App = () => {
 
   const notification = useSelector(state => state.notification)
   const blogs = useSelector(state => state.blogs)
-  const currentUser = useSelector(state => state.user)
+  const currentUser = useSelector(state => state.login)
+  const users = useSelector(state => state.users)
 
   const blogFormRef = React.createRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       dispatch(initBlogs(blogs))
+    )
+    userService.getAll().then(users =>
+      dispatch(initUsers(users))
     )
   }, [dispatch])
 
@@ -46,7 +62,6 @@ const App = () => {
       const user = await loginService.login({
         username, password
       })
-
       setUsername('')
       setPassword('')
       dispatch(setCurrentUser(user))
@@ -89,6 +104,17 @@ const App = () => {
     storage.logoutUser()
   }
 
+  const userMatch = useRouteMatch('/users/:id')
+  const userToView = userMatch
+    ? users.find(u => u.id === userMatch.params.id)
+    : null
+
+  const blogMatch = useRouteMatch('/blogs/:id')
+  const blogToView = blogMatch
+    ? blogs.find(b => b.id === blogMatch.params.id)
+    : null
+
+
   if ( !currentUser ) {
     return (
       <div>
@@ -123,27 +149,44 @@ const App = () => {
 
   return (
     <div>
-      <h2>blogs</h2>
+      <Menu user={currentUser} handleLogout={handleLogout} />
+
+      <h2>Blog app</h2>
 
       <Notification notification={notification} />
 
-      <p>
-        {currentUser.name} logged in <button onClick={handleLogout}>logout</button>
-      </p>
+      <Switch>
+        <Route path='/users/:id'>
+          <User path='/users' user={userToView}/>
+        </Route>
+        <Route path='/users'>
+          <Users users={users}/>
+        </Route>
+        <Route path='/blogs/:id'>
+          {blogToView
+            ? <Blog
+                blog={blogToView}
+                handleLike={handleLike}
+                handleRemove={handleRemove}
+                own={currentUser.username===blogToView.user.username}
+                details={true}
+              />
+            : null
+          }
+        </Route>
+        <Route path='/'>
+          <Togglable buttonLabel='create new' ref={blogFormRef}>
+            <BlogForm createBlog={createBlog} />
+          </Togglable>
 
-      <Togglable buttonLabel='create new blog' ref={blogFormRef}>
-        <BlogForm createBlog={createBlog} />
-      </Togglable>
-
-      {blogs.sort(byLikes).map(blog =>
-        <Blog
-          key={blog.id}
-          blog={blog}
-          handleLike={handleLike}
-          handleRemove={handleRemove}
-          own={currentUser.username===blog.user.username}
-        />
-      )}
+          {blogs.sort(byLikes).map(blog =>
+            <Blog
+              key={blog.id}
+              blog={blog}
+            />
+          )}
+        </Route>
+      </Switch>
     </div>
   )
 }
