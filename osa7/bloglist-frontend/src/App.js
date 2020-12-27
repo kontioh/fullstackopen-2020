@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Switch,
-  Route,
-  useRouteMatch
-} from 'react-router-dom'
+import { Switch, Route, useRouteMatch, Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { Button, Table } from 'react-bootstrap'
 
 import Blog from './components/Blog'
 import Notification from './components/Notification'
@@ -18,7 +16,6 @@ import loginService from './services/login'
 import userService from './services/users'
 import storage from './utils/storage'
 
-import { useDispatch, useSelector } from 'react-redux'
 import { newNotification } from './reducers/notificationReducer'
 import { initBlogs, newBlog, likeBlog, removeBlog } from './reducers/blogReducer'
 import { setCurrentUser } from './reducers/loginReducer'
@@ -117,8 +114,8 @@ const App = () => {
 
   if ( !currentUser ) {
     return (
-      <div>
-        <h2>login to application</h2>
+      <div className='container'>
+        <h2>Login to application</h2>
 
         <Notification notification={notification} />
 
@@ -139,7 +136,7 @@ const App = () => {
               onChange={({ target }) => setPassword(target.value)}
             />
           </div>
-          <button id='login'>login</button>
+          <Button size='sm' id='login' type='submit'>login</Button>
         </form>
       </div>
     )
@@ -148,10 +145,9 @@ const App = () => {
   const byLikes = (b1, b2) => b2.likes - b1.likes
 
   return (
-    <div>
+    <div className='container'>
       <Menu user={currentUser} handleLogout={handleLogout} />
-
-      <h2>Blog app</h2>
+      <br />
 
       <Notification notification={notification} />
 
@@ -175,16 +171,27 @@ const App = () => {
           }
         </Route>
         <Route path='/'>
+          <h2>Blogs</h2>
           <Togglable buttonLabel='create new' ref={blogFormRef}>
             <BlogForm createBlog={createBlog} />
           </Togglable>
 
-          {blogs.sort(byLikes).map(blog =>
-            <Blog
-              key={blog.id}
-              blog={blog}
-            />
-          )}
+          <Table striped bordered hover size='sm' variant='light'>
+            <thead>
+              <tr>
+                <th>Blog</th>
+                <th>Author</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blogs.sort(byLikes).map(blog =>
+                <tr key={blog.id}>
+                  <td><Link to={`/blogs/${blog.id}`}>{blog.title}</Link></td>
+                  <td>{blog.author}</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
         </Route>
       </Switch>
     </div>

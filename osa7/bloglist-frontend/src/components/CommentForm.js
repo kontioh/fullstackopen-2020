@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import blogService from '../services/blogs'
+import { Button } from 'react-bootstrap'
 
 const CommentForm = ({ blogId }) => {
   const [comment, setComment] = useState('')
@@ -22,7 +23,7 @@ const CommentForm = ({ blogId }) => {
           id='comment'
           value={comment}
           onChange={({ target }) => setComment(target.value)}></input>
-        <button type='submit'>post comment</button>
+        <Button size="sm" type='submit'>post comment</Button>
       </form>
     </div>
   )
