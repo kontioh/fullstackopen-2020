@@ -57,6 +57,7 @@ const typeDefs = gql`
     ): [Book]
     allAuthors: [Author]
     me: User
+    allGenres: [String]
   }
 
   type Mutation {
@@ -115,10 +116,25 @@ const resolvers = {
           bookCount: booksByAuthor ? booksByAuthor.length : 0
         })
       }
-      console.log(returnedAuthors)
       return returnedAuthors
     },
-    me: (root, args, context) => context.currentUser
+    me: (root, args, context) => context.currentUser,
+    allGenres: async () => {
+      const books = await Book.find({})
+      const genresByBook = books.map(b => b.genres)
+      let genres = []
+      for (let i = 0; i < genresByBook.length; i++) {
+        const current = genresByBook[i]
+        for (let j = 0; j < current.length; j++) {
+          const genre = current[j]
+          if (!genres.find(g => g === genre)) {
+            genres = genres.concat(genre)
+          }
+        }
+      }
+      console.log(genres)
+      return genres
+    }
   },
   Mutation: {
     addBook: async (root, args, context) => {
