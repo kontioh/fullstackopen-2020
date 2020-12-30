@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client'
+import { useSubscription, useApolloClient } from '@apollo/client'
 import React, { useEffect, useState } from 'react'
 import Authors from './components/Authors'
 import Books from './components/Books'
@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm'
 import NewBook from './components/NewBook'
 import Notification from './components/Notification'
 import Recommendations from './components/Recommendations'
+import { ALL_BOOKS, BOOK_ADDED } from './queries'
 
 const App = () => {
   const [page, setPage] = useState('authors')
@@ -13,21 +14,34 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null)
   const client = useApolloClient()
 
+  const updateCacheWith = (addedBook) => {
+    const includedIn = (set, object) => 
+      set.map(p => p.id).includes(object.id)  
+
+    const dataInStore = client.readQuery({ query: ALL_BOOKS })
+    if (!includedIn(dataInStore.allBooks, addedBook)) {
+      client.writeQuery({
+        query: ALL_BOOKS,
+        data: { allBooks : dataInStore.allBooks.concat(addedBook) }
+      })
+    }   
+  }
+
+  useSubscription(BOOK_ADDED, {
+    onSubscriptionData: ({ subscriptionData}) => {
+      console.log(subscriptionData)
+      const addedBook = subscriptionData.data.bookAdded
+      window.alert(`${addedBook.title} by ${addedBook.author.name} added`)
+      updateCacheWith(addedBook)
+    }
+  })
+
   useEffect(() => {
     const token = localStorage.getItem('library-user-token')
     if (token) {
       setToken(token)
     }
   }, [])
-
-  useEffect(() => {
-    if (token && page === 'login') {
-      setPage('authors')
-    }
-    if (!token && (page === 'recommend' || page === 'add')) {
-      setPage('login')
-    }
-  }, [token, page])
 
   const notify = (message) => {
     setErrorMessage(message)
@@ -40,6 +54,7 @@ const App = () => {
     setToken(null)
     localStorage.clear()
     client.resetStore()
+    setPage('login')
   }
 
   return (
@@ -73,6 +88,7 @@ const App = () => {
       <NewBook
         show={page === 'add'}
         setError={notify}
+        setPage={setPage}
       />
 
       {token && <Recommendations show={page === 'recommend'} />}
@@ -81,6 +97,7 @@ const App = () => {
         show={page === 'login'}
         setToken={setToken}
         setError={notify}
+        setPage={setPage}
       />
 
     </div>
