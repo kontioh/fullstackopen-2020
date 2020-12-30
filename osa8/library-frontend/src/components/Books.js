@@ -1,23 +1,32 @@
-import React, { useState } from 'react'
-import { ALL_BOOKS, ALL_GENRES } from '../queries'
-import { useQuery } from '@apollo/client'
+import React, { useEffect, useState } from 'react'
+import { ALL_BOOKS } from '../queries'
+import { useQuery, useLazyQuery } from '@apollo/client'
 
 const Books = (props) => {
-  const [genre, setGenre] = useState('all')
+  const [genre, setGenre] = useState('')
 
-  const booksResult = useQuery(ALL_BOOKS)
-  const genresResult = useQuery(ALL_GENRES)
+  const allBooksResult = useQuery(ALL_BOOKS)
+  const [getBooks, booksResult] = useLazyQuery(ALL_BOOKS)
+
+  useEffect(() => {
+    getBooks()
+  }, []) // eslint-disable-line
   
-  if (!props.show || booksResult.loading || genresResult.loading) {
+  if (!props.show) {
     return null
   }
   
-  let books = booksResult.data.allBooks
-  if (genre !== 'all') {
-    books = books.filter(b => b.genres.indexOf(genre) !== -1)
-  }
+  const books = booksResult.data?.allBooks
+    ? booksResult.data.allBooks
+    : allBooksResult.data?.allBooks
 
-  const genres = genresResult.data.allGenres
+  let genres = allBooksResult.data?.allBooks?.flatMap(b => b.genres)
+  genres = [...new Set(genres)]
+
+  const handleGenreChange = (genre) => {
+    setGenre(genre)
+    getBooks({ variables: { genre: genre } })
+  }
 
   return (
     <div>
@@ -27,12 +36,8 @@ const Books = (props) => {
         <tbody>
           <tr>
             <th></th>
-            <th>
-              author
-            </th>
-            <th>
-              published
-            </th>
+            <th>author</th>
+            <th>published</th>
           </tr>
           {books.map(a =>
             <tr key={a.title}>
@@ -43,15 +48,13 @@ const Books = (props) => {
           )}
         </tbody>
       </table>
-      
+
       <br />
       Select genre
-      <select value={genre} onChange={({ target }) => setGenre(target.value)}>
-          <option value='all'>all genres</option>
+      <select value={genre} onChange={({ target }) => handleGenreChange(target.value)}>
+          <option value=''>all genres</option>
         {genres.map((g,i) => <option key={i} value={g}>{g}</option>)}
       </select>
-      
-
     </div>
   )
 }

@@ -5,15 +5,17 @@ import { useQuery } from '@apollo/client'
 const Recommendations = ({ show }) => {
 
   const userResult = useQuery(GET_ME)
-  const bookResult = useQuery(ALL_BOOKS)
+  const favoriteGenre = userResult.data?.me?.favoriteGenre
+  const bookResult = useQuery(ALL_BOOKS, {
+    variables: { genre: favoriteGenre},
+  })
 
   if (!show || userResult.loading || bookResult.loading) {
     return null
   }
 
-  const favoriteGenre = userResult.data.me.favoriteGenre
-  const books = bookResult.data.allBooks.filter(b => b.genres.indexOf(favoriteGenre) !== -1)
-
+  const books = bookResult.data?.allBooks
+  
   return (
     <div>
       <h2>recommendations</h2>
@@ -24,12 +26,8 @@ const Recommendations = ({ show }) => {
         <tbody>
           <tr>
             <th></th>
-            <th>
-              author
-            </th>
-            <th>
-              published
-            </th>
+            <th>author</th>
+            <th>published</th>
           </tr>
           {books.map(a =>
             <tr key={a.title}>
