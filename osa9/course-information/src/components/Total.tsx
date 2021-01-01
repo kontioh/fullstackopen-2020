@@ -5,11 +5,7 @@ interface TotalProps {
 }
 
 const Total: React.FC<TotalProps> = (props) => {
-  return (
-    <div>
-      <p>Total number of exercises: <strong>{props.total}</strong></p>
-    </div>
-  )
+  return <h3>Total number of exercises: {props.total}</h3>;
 }
 
 export default Total;
