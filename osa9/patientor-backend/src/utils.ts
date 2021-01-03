@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   NewPatient,
-  Gender
+  Gender,
+  Entry
 } from './types';
 
 const isString = (text: any): text is string => {
@@ -17,6 +20,10 @@ const isDate = (date: string): boolean => {
 
 const isGender = (param: any): param is Gender => {
   return Object.values(Gender).includes(param);
+};
+
+const isEntry = (entry: any): entry is Entry => {
+  return entry.type === "HealthCheck" || entry.type === "Hospital" || entry.type === "OccupationalHealthcare";
 };
 
 const parseName = (name: any): string => {
@@ -54,6 +61,14 @@ const parseOccupation = (occupation: any): string => {
   return occupation;
 };
 
+const parseEntries = (entries: any): Entry[] => {
+  if (!entries) return [];
+  if (entries.find((e: any) => !isEntry(e))) {
+    throw new Error('Invalid or missing entries: ' + entries);
+  }
+  return entries;
+};
+
 const toNewPatient = (object: any): NewPatient => {
   return {
     name: parseName(object.name),
@@ -61,7 +76,7 @@ const toNewPatient = (object: any): NewPatient => {
     occupation: parseOccupation(object.occupation),
     dateOfBirth: parseDateOfBirth(object.dateOfBirth),
     gender: parseGender(object.gender),
-    entries: [] // temporary
+    entries: parseEntries(object.entries)
   };
 };
 
