@@ -1,0 +1,15 @@
+POST http://localhost:3001/api/patients/d2773336-f723-11e9-8f0b-362b9e155667/entries
+Content-Type: application/json
+
+{
+  "date": "2018-05-01",
+  "type": "Hospital",
+  "specialist": "MD House",
+  "diagnosisCodes": [ "Z57.1" ],
+  "description": 
+    "Test description",
+  "discharge": {
+    "date": "2018-05-20",
+    "criteria": "No criteria..."
+    }
+}

@@ -6,10 +6,11 @@ import {
   Container,
   Segment,
   Grid,
-  List
+  List,
+  Button
 } from 'semantic-ui-react';
 
-import { useStateValue, extendPatient } from "../state";
+import { useStateValue, extendPatient, addEntry } from "../state";
 import { apiBaseUrl } from "../constants";
 import {
   Gender,
@@ -21,6 +22,8 @@ import {
   HealthCheckEntry,
   HealthCheckRating
 } from '../types';
+import { EntryFormValues } from '../AddEntryModal/AddEntryForm';
+import AddEntryModal from '../AddEntryModal'; 
 
 
 const assertNever = (value: never): never => {
@@ -60,7 +63,7 @@ const OccupationalHealthcareEntryDetails: React.FC<{ entry: OccupationalHealthca
   );
 };
 
-const HealthCheckEntryDetails: React.FC<{ entry: HealthCheckEntry }> = ({ entry }) => {
+const HealthCheckEntryDetails: React.FC<{ entry: HealthCheckEntry; diagnoses: { [code: string]: Diagnosis} }> = ({ entry, diagnoses }) => {
   const heartColor = (rating: HealthCheckRating) => {
     switch (rating) {
       case 0: return 'green';
@@ -75,6 +78,9 @@ const HealthCheckEntryDetails: React.FC<{ entry: HealthCheckEntry }> = ({ entry 
         <h3>{entry.date} <Icon name='doctor' size='large' /></h3>
         <i style={{ color: 'gray' }}>
           <div>{entry.description}</div>
+          <List>
+            {entry.diagnosisCodes?.map(c => <List.Item key={c}>{c} {diagnoses[c].name}</List.Item>)}
+          </List>
           <Icon name='heart' color={heartColor(entry.healthCheckRating)}/>
         </i>
       </Segment>
@@ -89,7 +95,7 @@ const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
     case 'OccupationalHealthcare':
       return <OccupationalHealthcareEntryDetails entry={entry} diagnoses={diagnoses} />;
     case 'HealthCheck':
-      return <HealthCheckEntryDetails entry={entry} />;
+      return <HealthCheckEntryDetails entry={entry} diagnoses={diagnoses} />;
     default:
       assertNever(entry);
       return <div>Something went wrong...</div>;
@@ -99,6 +105,16 @@ const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
 
 const SinglePatientPage: React.FC = () => {
   const [{ patients }, dispatch] = useStateValue();
+
+  const [modalOpen, setModalOpen] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | undefined>();
+
+  const openModal = (): void => setModalOpen(true);
+
+  const closeModal = (): void => {
+    setModalOpen(false);
+    setError(undefined);
+  };
 
   const genderIcon = (gender: Gender) => {
     switch (gender) {
@@ -132,6 +148,24 @@ const SinglePatientPage: React.FC = () => {
 
   const patient = patients[id];
 
+  const addNewEntry = async (values: EntryFormValues) => {
+    try {
+      const { data: newEntry } = await axios.post<Entry>(
+        `${apiBaseUrl}/patients/${id}/entries`,
+        values
+      );
+      dispatch(addEntry(newEntry, id));
+      closeModal();
+    } catch (e) {
+      console.error(e.response.data);
+      setError(e.response.data);
+
+      setTimeout(() => {
+        setError('');
+      }, 10000);
+    }
+  };
+
   return (
     <div>
       <h2>{patient.name} {genderIcon(patient.gender)}</h2>
@@ -139,6 +173,15 @@ const SinglePatientPage: React.FC = () => {
       <div>occupation: {patient.occupation}</div>
 
       <h3>entries</h3>
+
+      <AddEntryModal
+        modalOpen={modalOpen}
+        onSubmit={addNewEntry}
+        error={error}
+        onClose={closeModal}
+      />
+      <Button onClick={() => openModal()}>Add New Entry</Button>
+
       <Container>
         <Grid stackable>
           <Grid.Column>
