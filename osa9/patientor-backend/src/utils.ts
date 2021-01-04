@@ -128,7 +128,7 @@ const parseDischarge = (discharge: any): { date: string, criteria: string } => {
 };
 
 const parseSickLeave = (sickLeave: any): { startDate: string, endDate: string } | undefined => {
-  if (!sickLeave) return sickLeave;
+  if (!sickLeave || (!sickLeave.startDate && !sickLeave.endDate)) return sickLeave;
   
   if (!sickLeave.startDate 
       || !sickLeave.endDate
